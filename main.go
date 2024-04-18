@@ -3,9 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/sgallaghe1541/chirpy/internal/database"
 )
 
 type apiConfig struct {
+	db             *database.DB
 	fileserverHits int
 }
 
@@ -13,7 +16,13 @@ func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
+	dbChirps, err := database.NewDB("database.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	apiCfg := apiConfig{
+		db:             dbChirps,
 		fileserverHits: 0,
 	}
 

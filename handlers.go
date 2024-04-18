@@ -38,12 +38,8 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 
-	type returnVals struct {
-		Valid bool `json:"valid"`
-	}
-
-	type returnErrs struct {
-		Err string `json:"error"`
+	type respMsg struct {
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -55,36 +51,13 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(chirpToPost.Body) > 140 {
-		respBody := returnErrs{
-			Err: "Chirp is too long",
-		}
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshalling JSON: %s", err)
-			w.WriteHeader(500)
-			return
-		}
-
-		w.WriteHeader(400)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(dat)
+	if checkMsgLength(chirpToPost.Body) {
+		respondWithError(w, 400, "Chirp is too long")
 		return
 	}
 
-	respBody := returnVals{
-		Valid: true,
+	respBody := respMsg{
+		CleanedBody: cleanString(chirpToPost.Body),
 	}
-
-	dat, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshalling JSON: %s", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	w.Write(dat)
-
+	respondWithJSON(w, http.StatusOK, respBody)
 }
